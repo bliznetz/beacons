@@ -3,7 +3,7 @@ import socket
 import datetime
 import subprocess
 #output = subprocess.check_output(["python", "testblescan.py"], text=True)
-testblescan = subprocess.check_output(['cat','data.txt'], text=True)
+testblescan = subprocess.check_output(['cat','data.txt'], universal_newlines=True) #Option text=True was added in Python 3.7. Raspberian has Python 3.5 and it's not straightforward to upgrade it
 
 x=''
 for line in testblescan.split('\n'):   #Split one string into multipule
