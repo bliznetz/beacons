@@ -5,7 +5,7 @@ import datetime
 import subprocess
 import sys
 
-testblescan = subprocess.Popen(['python', 'testblescan.py'], stdout=subprocess.PIPE, bufsize=1, univers$
+testblescan = subprocess.Popen(['python', 'testblescan.py'], stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
 
 x=''
 for line in iter(testblescan.stdout.readline,''):
