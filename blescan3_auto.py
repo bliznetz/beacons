@@ -1,3 +1,6 @@
+# BLE iBeaconScanner based on https://gitlab.com/bliznetz/ibeaconscantokafka.git
+#05/24/19
+
 # BLE iBeaconScanToKafke based on https://github.com/switchdoclabs/iBeacon-Scanner-.git
 # Mira 11/19/18
 #
