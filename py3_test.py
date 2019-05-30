@@ -21,7 +21,7 @@ for line in iter(testblescan.stdout.readline,''):
     except KafkaError:
         logger.info("Can't send data to Kafka")
 
-    print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='')
-    x=''
 
+    x=''
+    #print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='')
 
