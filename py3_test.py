@@ -25,3 +25,4 @@ for line in iter(testblescan.stdout.readline,''):
     x=''
     #print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='')
 
+#pip3 install kafka-python
