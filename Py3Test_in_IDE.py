@@ -2,8 +2,8 @@ import re
 import socket
 import datetime
 import subprocess
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
+#from kafka import KafkaProducer
+#from kafka.errors import KafkaError
 import logging
 #Option 'text=True' was added in Python 3.7. Raspberian has Python 3.5 and it's not straightforward to upgrade it
 testblescan = subprocess.Popen(['cat','data.txt'], stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
@@ -20,6 +20,9 @@ for line in iter(testblescan.stdout.readline,''):
      #   producer.send(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='')
     #except KafkaError:
     #    logger.info("Can't send data to Kafka")
-
+    print(type(x))
+    print(type(topic))
+    print(type(socket.gethostname()))
+    print(type(datetime.datetime.now().strftime("%s")))
     print(topic, socket.gethostname(), datetime.datetime.now().strftime("%s"), x, end='')
     x=''
