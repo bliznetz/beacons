@@ -151,7 +151,7 @@ def parse_events(sock, loop_count):
         elif event == bluez.EVT_DISCONN_COMPLETE:
                 i =0 
         elif event == LE_META_EVENT:
-            subevent, = struct.unpack("B", pkt[3])
+            subevent, = struct.unpack("B", str(pkt[3]).encode()) #Convert int to string and string to byte object
             pkt = pkt[4:]
             isiBeacon = False
             if (pkt[14:19]):
