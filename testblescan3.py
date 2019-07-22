@@ -10,7 +10,7 @@ try:
 
 except:
 	print("error accessing bluetooth device...")
-    	sys.exit(1)
+		sys.exit(1)
 
 blescan3.hci_le_set_scan_parameters(sock)
 blescan3.hci_enable_le_scan(sock)
