@@ -9,7 +9,7 @@ from kafka.errors import KafkaError
 import logging
 import binascii
 
-testblescan = subprocess.Popen(['python', 'testblescan.py'], stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
+testblescan = subprocess.Popen(['python3', 'testblescan3.py'], stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
 logger=logging.getLogger()
 producer = KafkaProducer(bootstrap_servers=['10.66.216.17:9092'], value_serializer=lambda v: v.encode('utf-8'))
 x=''
