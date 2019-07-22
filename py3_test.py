@@ -8,6 +8,7 @@ from kafka.errors import KafkaError
 #import kafka
 import logging
 import binascii
+import testblescan3
 
 
 
@@ -38,3 +39,4 @@ def blescan_to_kafka(script, kafka_server):
 blescan_to_kafka ('testblescan3.py', '10.66.216.17:9092')
 
 #pip3 install kafka-python
+#pip3 install pybluez
