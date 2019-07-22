@@ -145,7 +145,7 @@ def parse_events(sock, loop_count):
         if (DEBUG == True):
             print("------ptype, event, plen--------",ptype, event, plen) 
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
-        i =0
+            i =0
         elif event == bluez.EVT_NUM_COMP_PKTS:
                 i =0 
         elif event == bluez.EVT_DISCONN_COMPLETE:
@@ -167,21 +167,21 @@ def parse_events(sock, loop_count):
                 for i in range(0, num_reports):
 		
             if (DEBUG == True):
-            print("-------------")
-                    print("\tfullpacket: ", printpacket(pkt))
+                print("-------------")
+                print("\tfullpacket: ", printpacket(pkt))
                 print("\tUDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]))
                 print("\tTTMFGID: ", printpacket(pkt[report_pkt_offset -27: report_pkt_offset - 22]))
                 print("\tMAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4]))
                 print("\tMINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]))
-                        print("\tMAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
+                print("\tMAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
                 # commented out - don't know what this byte is.  It's NOT TXPower
-                    	txpower, = struct.unpack("b", pkt[report_pkt_offset -2])
-                        print("\t(Unknown):", txpower)
+                txpower, = struct.unpack("b", pkt[report_pkt_offset -2])
+                print("\t(Unknown):", txpower)
 	
-                        rssi, = struct.unpack("b", pkt[report_pkt_offset -1])
-                        print("\tRSSI:", rssi)
+                rssi, = struct.unpack("b", pkt[report_pkt_offset -1])
+                print("\tRSSI:", rssi)
              # build the return string
-                    Adstring = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
+            Adstring = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
             Adstring += ","
             Adstring += returnstringpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
             Adstring += ","
@@ -196,7 +196,7 @@ def parse_events(sock, loop_count):
 		    
             if (DEBUG == True):
                 print("\tAdstring=", Adstring)
-            myFullList.append(Adstring)
+                myFullList.append(Adstring)
                 done = True
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
     return myFullList
