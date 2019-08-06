@@ -135,7 +135,7 @@ def parse_events(sock, loop_count):
     flt = bluez.hci_filter_new()
     bluez.hci_filter_all_events(flt)
     bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
-    sock. setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
+    sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
     done = False
     results = []
     myFullList = []
@@ -163,6 +163,7 @@ def parse_events(sock, loop_count):
             elif ((subevent == EVT_LE_ADVERTISING_REPORT) and isiBeacon):
                 #print "advertising report"
                 num_reports = struct.unpack("B", pkt[0])[0]
+
                 report_pkt_offset = 0
                 for i in range(0, num_reports):
 		
