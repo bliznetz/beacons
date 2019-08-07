@@ -58,7 +58,8 @@ def returnnumberpacket(pkt):
     myInteger = 0
     multiple = 256
     for c in pkt:
-        myInteger +=  struct.unpack("B",c)[0] * multiple
+        #myInteger +=  struct.unpack("B",c)[0] * multiple
+        myInteger +=  int(c) * multiple
         multiple = 1
     return myInteger 
 
@@ -159,6 +160,7 @@ def parse_events(sock, loop_count):
             #subevent, = struct.unpack("B", pkt[3])
             subevent = pkt[3]
             print('subevent:', subevent)
+            print('type subevent:', type(subevent))
             pkt = pkt[4:]
             print('pkt:', pkt)
             isiBeacon = False
@@ -172,17 +174,15 @@ def parse_events(sock, loop_count):
                 le_handle_connection_complete(pkt)
             elif ((subevent == EVT_LE_ADVERTISING_REPORT) and isiBeacon):
                 #print "advertising report"
-<<<<<<< HEAD
                 num_reports = pkt[0]
                 #num_reports = struct.unpack("B", pkt[0])[0]
                 print('num_report:', num_reports)
-=======
-                num_reports = struct.unpack("B", pkt[0])[0]
-
->>>>>>> b65be656f987aa3fb4a4723bfebc979946098b3f
                 report_pkt_offset = 0
                 for i in range(0, num_reports):
-		
+                    pktbs = bitstring.BitStream(pkt)
+                    pktbs.pos += len(pktbs) - (2 * 8)
+                    txpower = pktbs.read('int:8')
+                    rssi = pktbs.read('int:8')
                     if (DEBUG == True):
                         print(pkt)
                         print("-------------")
@@ -193,13 +193,12 @@ def parse_events(sock, loop_count):
                         print("MINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]))
                         print("MAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
                         # commented out - don't know what this byte is.  It's NOT TXPower
-                        pktbs = bitstring.BitStream(pkt)
-#                        n = report_pkt_offset - 2
-                        pktbs.pos += len(pktbs) - (2 * 8)
-                        txpower = pktbs.read('int:8')
+                        #pktbs = bitstring.BitStream(pkt)
+                        #pktbs.pos += len(pktbs) - (2 * 8)
+                        #txpower = pktbs.read('int:8')
                         # print(("\t(Unknown):", txpower))
                         print ('TXPOWER:', txpower)
-                        rssi = pktbs.read('int:8')
+                        #rssi = pktbs.read('int:8')
                         # rssi, = struct.unpack('b', pkt[report_pkt_offset -1])
                         print("RSSI:", rssi)
              # build the return string
@@ -210,12 +209,18 @@ def parse_events(sock, loop_count):
                     print(Adstring)
                     Adstring += ","
                     Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
+                    print(Adstring)
                     Adstring += ","
                     Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
+                    print(Adstring)
                     Adstring += ","
-                    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2])
+                    #Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2])
+                    Adstring += "%i" % txpower
+                    print(Adstring)
                     Adstring += ","
-                    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1])
+                    #Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1])
+                    Adstring += "%i" % rssi
+                    print(Adstring)
 
 		    
                     if (DEBUG == True):
