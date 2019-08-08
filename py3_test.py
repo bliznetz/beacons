@@ -23,6 +23,7 @@ def blescan_to_kafka(script):
             x = x + ' ' + t
         topic = ((re.match('^([^,]+)', line)).group()).replace(':', '')  # Find first element before comma
         x=''
+#        print(topic)
     #sys.stdout.write('')
     #print topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, #For Python2
         print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='') #For Python3

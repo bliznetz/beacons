@@ -7,7 +7,7 @@
 # BLE iBeaconScanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # JCS 06/07/14
 
-DEBUG = True
+DEBUG = False
 # BLE scanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # BLE scanner, based on https://code.google.com/p/pybluez/source/browse/trunk/examples/advanced/inquiry-with-rssi.py
 
@@ -86,6 +86,7 @@ def get_packed_bdaddr(bdaddr_string):
 def packed_bdaddr_to_string(bdaddr_packed):
 #    return ':'.join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
     return ':'.join('%02x'%i for i in bdaddr_packed[::-1])
+
 def hci_enable_le_scan(sock):
     hci_toggle_le_scan(sock, 0x01)
 
@@ -146,10 +147,10 @@ def parse_events(sock, loop_count):
     myFullList = []
     for i in range(0, loop_count):
         pkt = sock.recv(255)
-        print('pkt_init:', printpacket(pkt)) #for debug
+        #print('pkt_init:', printpacket(pkt)) #for debug
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
         if (DEBUG == True):
-            print(("------ptype, event, plen--------",ptype, event, plen)) 
+            print("------ptype, event, plen-------- \n", ptype, event, plen)
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
             i =0
         elif event == bluez.EVT_NUM_COMP_PKTS:
@@ -159,24 +160,21 @@ def parse_events(sock, loop_count):
         elif event == LE_META_EVENT:
             #subevent, = struct.unpack("B", pkt[3])
             subevent = pkt[3]
-            print('subevent:', subevent)
-            print('type subevent:', type(subevent))
+            #print('subevent:', subevent)
             pkt = pkt[4:]
-            print('pkt:', pkt)
+            #print('pkt:', pkt)
             isiBeacon = False
             if (pkt[14:19]):
                 isiBeacon = True if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString else False
             if (DEBUG == True):
-                print(("----- isIbeacon -----", isiBeacon))
-                print(iBeaconIdString)
-                print(struct.unpack("BBBBB", pkt[14:19]))       
+                print("----- isIbeacon -----", isiBeacon)
             if subevent == EVT_LE_CONN_COMPLETE:
                 le_handle_connection_complete(pkt)
             elif ((subevent == EVT_LE_ADVERTISING_REPORT) and isiBeacon):
                 #print "advertising report"
                 num_reports = pkt[0]
                 #num_reports = struct.unpack("B", pkt[0])[0]
-                print('num_report:', num_reports)
+                #print('num_report:', num_reports)
                 report_pkt_offset = 0
                 for i in range(0, num_reports):
                     pktbs = bitstring.BitStream(pkt)
@@ -184,7 +182,7 @@ def parse_events(sock, loop_count):
                     txpower = pktbs.read('int:8')
                     rssi = pktbs.read('int:8')
                     if (DEBUG == True):
-                        print(pkt)
+                        #print(pkt)
                         print("-------------")
                         print("fullpacket: ", printpacket(pkt))
                         print("UDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]))
@@ -193,38 +191,26 @@ def parse_events(sock, loop_count):
                         print("MINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]))
                         print("MAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
                         # commented out - don't know what this byte is.  It's NOT TXPower
-                        #pktbs = bitstring.BitStream(pkt)
-                        #pktbs.pos += len(pktbs) - (2 * 8)
-                        #txpower = pktbs.read('int:8')
                         # print(("\t(Unknown):", txpower))
                         print ('TXPOWER:', txpower)
-                        #rssi = pktbs.read('int:8')
-                        # rssi, = struct.unpack('b', pkt[report_pkt_offset -1])
                         print("RSSI:", rssi)
              # build the return string
                     Adstring = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
-                    print(Adstring)
                     Adstring += ","
                     Adstring += returnstringpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
-                    print(Adstring)
                     Adstring += ","
                     Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
-                    print(Adstring)
                     Adstring += ","
                     Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
-                    print(Adstring)
                     Adstring += ","
                     #Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2])
                     Adstring += "%i" % txpower
-                    print(Adstring)
                     Adstring += ","
                     #Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1])
                     Adstring += "%i" % rssi
-                    print(Adstring)
-
 		    
                     if (DEBUG == True):
-                        print(("\tAdstring=", Adstring))
+                        print("Adstring =", Adstring)
                     myFullList.append(Adstring)
                 done = True
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )

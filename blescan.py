@@ -166,6 +166,7 @@ def parse_events(sock, loop_count):
 		    if (DEBUG == True):
 			print "-------------"
                     	print "\tfullpacket: ", printpacket(pkt)
+                    	print type(printpacket(pkt))
 		    	print "\tUDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
 		    	print "\tTTMFGID: ", printpacket(pkt[report_pkt_offset -27: report_pkt_offset - 22])
 		    	print "\tMAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
@@ -174,7 +175,6 @@ def parse_events(sock, loop_count):
 		    	# commented out - don't know what this byte is.  It's NOT TXPower
                     	txpower, = struct.unpack("b", pkt[report_pkt_offset -2])
                     	print "\t(Unknown):", txpower
-	
                     	rssi, = struct.unpack("b", pkt[report_pkt_offset -1])
                     	print "\tRSSI:", rssi
 		    # build the return string
