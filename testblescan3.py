@@ -1,6 +1,8 @@
 import blescan3
 import sys
-
+import re
+import datetime
+import socket
 import bluetooth._bluetooth as bluez
 
 dev_id = 0
@@ -19,5 +21,6 @@ while True:
 	returnedList = blescan3.parse_events(sock, 5)
 #	print "----------"
 	for beacon in returnedList:
-		print(beacon)
-		sys.stdout.flush()
+            print(beacon)
+            sys.stdout.flush()		
+    #sys.stdout.write('')

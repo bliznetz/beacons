@@ -1,7 +1,7 @@
 import re
 import socket
 import datetime
-import subprocess
+from subprocess import *
 import sys
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
@@ -12,22 +12,32 @@ import testblescan3
 
 
 
-def blescan_to_kafka(script):
+#def blescan_to_kafka(script):
 
-    testblescan = subprocess.Popen(['python3', script], stdout=subprocess.PIPE, bufsize=1, universal_newlines=True)
+testblescan = subprocess.Popen(['python3', testblescan3], stdout=subprocess.PIPE, bufsize=1)
+#universal_newlines=True)
+#iter = testblescan.communicate()    
     #logger=logging.getLogger()
     #producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lambda v: v.encode('utf-8'))
-    x=''
-    for line in iter(testblescan.stdout.readline,''):
-        for t in (line.split(','))[2: 6]:  #Split string by comma, select 3,4,5 and 6 fields and insert in into a new string.
-            x = x + ' ' + t
-        topic = ((re.match('^([^,]+)', line)).group()).replace(':', '')  # Find first element before comma
-        x=''
-#        print(topic)
+x=''
+#for line in iter(testblescan.stdout.readline):
+#for line in stdout:
+   # line = testblescan.stdout.readline()
+#(testblescan.stdout.readline,''):
+#for line in testblescan3.returnedList:
+for t in (beacon.split(','))[2: 6]:  #Split string by comma, select 3,4,5 and 6 fields and insert in into a new string.
+        print(t)
+        x = x + ' ' + t
+        print(x)
+topic = ((re.match('^([^,]+)', beacon)).group()).replace(':', '')  # Find first element before comma
+print(topic)
+x=''
     #sys.stdout.write('')
     #print topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, #For Python2
-        print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='') #For Python3
-    '''
+print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='') #For Python3
+
+
+'''
         try:
        # producer.send(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x)
            producer.send(topic,x)
@@ -39,7 +49,7 @@ def blescan_to_kafka(script):
             print('Can\'t send to Kafka')
         x=''
 '''
-blescan_to_kafka ('testblescan3.py')
+#blescan_to_kafka ('testblescan3.py')
 # '10.66.216.17:9092')
 
 #pip3 install kafka-python
