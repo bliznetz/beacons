@@ -8,7 +8,7 @@ import logging
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 import time
-kafka_server = 10.66.216.17:9092
+kafka_server = '10.66.216.17:9092'
 
 dev_id = 0
 try:
