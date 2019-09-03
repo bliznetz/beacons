@@ -8,6 +8,7 @@ import logging
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 import time
+kafka_server = 10.66.216.17:9092
 
 dev_id = 0
 try:
@@ -22,7 +23,7 @@ blescan3.hci_le_set_scan_parameters(sock)
 blescan3.hci_enable_le_scan(sock)
 
 logging.basicConfig(filename="/var/log/testblescan3.log", level=logging.INFO)
-producer = KafkaProducer(bootstrap_servers=['10.66.216.17:9092'], value_serializer=lambda v: v.encode('utf-8'))
+producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lambda v: v.encode('utf-8'))
 
 x=''
 
@@ -40,10 +41,10 @@ while True:
             value = socket.gethostname() + ' ' + data_time + x 
             try:
                 producer.send(topic, value)
-                logging.info("Sent data to topic")
+                logging.info("Sent data %s to topic %s (value, topic)")
                 #print("%s sent to %s" % (value, topic))
             except KafkaError:
-                logger.error("Can't send data to Kafka")
+                logger.error("Can't send data %s to Kafka topic %s (value, topic)")
                 #print('Can\'t send to Kafka')
             x=''
             sys.stdout.flush()
