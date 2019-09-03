@@ -29,7 +29,6 @@ x=''
 
 while True:
 	returnedList = blescan3.parse_events(sock, 5)
-#	print "----------"
 	for beacon in returnedList:
             #print(beacon)
 		
