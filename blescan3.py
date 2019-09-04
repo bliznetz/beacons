@@ -27,6 +27,7 @@ import struct
 import bluetooth._bluetooth as bluez
 import codecs
 import bitstring
+import binascii
 
 LE_META_EVENT = 0x3e
 LE_PUBLIC_ADDRESS=0x00
@@ -175,8 +176,8 @@ def parse_events(sock, loop_count):
                 num_reports = pkt[0]
                 report_pkt_offset = 0
                 for i in range(0, num_reports):
-                    pktbs = bitstring.BitStream(pkt)
-                    pktbs.pos += len(pktbs) - (2 * 8)
+                    #pktbs = bitstring.BitStream(pkt) Previous way to get two last values from pkt
+                    #pktbs.pos += len(pktbs) - (2 * 8)
                     #txpower = pktbs.read('int:8')
                     #rssi = pktbs.read('int:8')
                     if (DEBUG == True):
@@ -184,20 +185,16 @@ def parse_events(sock, loop_count):
                         print("-------------")
                         print("fullpacket: %s" % (printpacket(pkt)))
                         print("UDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]))
-                        print("TTMFGID: ", printpacket(pkt[report_pkt_offset -27: report_pkt_offset - 22]))
+                        print(printpacket(pkt[report_pkt_offset -27: report_pkt_offset - 22]), "TTMFGID: ")
                         print("MAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4]))
                         print("MINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]))
                         print("MAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
                         # commented out - don't know what this byte is.  It's NOT TXPower
-                        #txpower = printpacket(pkt[report_pkt_offset - 2: report_pkt_offset -1])
-                        #rssi = printpacket(pkt[report_pkt_offset - 1: report_pkt_offset -2])
-                        txpower = pkt[report_pkt_offset -2]
-                        tmp = bin(0xFFFFFF00) + bin(txpower)
-                        print(len(tmp))
-                        tt = struct.unpack("h", tmp.encode('UTF-8'))
-                        print(type(tt))
-                        print ('TXPOWER:', tt)
-                        #print("RSSI:", int(rssi))
+                        txpower = struct.unpack("b", pkt[report_pkt_offset -2: report_pkt_offset -1])[0]
+                        #rssi = pkt[report_pkt_offset -1: report_pkt_offset -2:-1]
+                        rssi = struct.unpack("b", pkt[report_pkt_offset -1: report_pkt_offset -2:-1])[0]
+                        print ('TXPOWER:', txpower)
+                        print("RSSI:", rssi)
              # build the return string
                     Adstring = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
                     Adstring += ","
