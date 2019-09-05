@@ -7,7 +7,7 @@
 # BLE iBeaconScanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # JCS 06/07/14
 
-DEBUG = True
+DEBUG = False
 # BLE scanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # BLE scanner, based on https://code.google.com/p/pybluez/source/browse/trunk/examples/advanced/inquiry-with-rssi.py
 
@@ -148,7 +148,6 @@ def parse_events(sock, loop_count):
     myFullList = []
     for i in range(0, loop_count):
         pkt = sock.recv(255)
-        #print('pkt_init:', printpacket(pkt)) #for debug
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
         if (DEBUG == True):
             print("------ptype, event, plen-------- \n", ptype, event, plen)
@@ -161,9 +160,7 @@ def parse_events(sock, loop_count):
         elif event == LE_META_EVENT:
             #subevent, = struct.unpack("B", pkt[3])
             subevent = pkt[3]
-            #print('subevent:', subevent)
             pkt = pkt[4:]
-            #print('pkt:', pkt)
             isiBeacon = False
             if (pkt[14:19]):
                 isiBeacon = True if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString else False
@@ -181,17 +178,21 @@ def parse_events(sock, loop_count):
                     #txpower = pktbs.read('int:8')
                     #rssi = pktbs.read('int:8')
                     if (DEBUG == True):
-                        #print(pkt)
                         print("-------------")
-                        print("fullpacket: %s" % (printpacket(pkt)))
-                        print("UDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]))
-                        print(printpacket(pkt[report_pkt_offset -27: report_pkt_offset - 22]), "TTMFGID: ")
-                        print("MAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4]))
-                        print("MINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]))
-                        print("MAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
+                        print("fullpacket:", end = ' ')
+                        print(printpacket(pkt))
+                        print("UDID:", end = ' ') 
+                        print(printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]))
+                        print("TTMFGID:", end = ' ')
+                        print(printpacket(pkt[report_pkt_offset -27: report_pkt_offset - 22]))
+                        print("MAJOR:", end = ' ')
+                        print(printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4]))
+                        print("MINOR:", end = ' ')
+                        print(printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]))
+                        print("MAC address:", end = ' ')
+                        print(packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9]))
                         # commented out - don't know what this byte is.  It's NOT TXPower
                         txpower = struct.unpack("b", pkt[report_pkt_offset -2: report_pkt_offset -1])[0]
-                        #rssi = pkt[report_pkt_offset -1: report_pkt_offset -2:-1]
                         rssi = struct.unpack("b", pkt[report_pkt_offset -1: report_pkt_offset -2:-1])[0]
                         print ('TXPOWER:', txpower)
                         print("RSSI:", rssi)
@@ -204,11 +205,9 @@ def parse_events(sock, loop_count):
                     Adstring += ","
                     Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
                     Adstring += ","
-                    #Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2])
-                    Adstring += "%i" % txpower
+                    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2: report_pkt_offset -1])[0]
                     Adstring += ","
-                    #Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1])
-                    Adstring += "%i" % rssi
+                    Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1: report_pkt_offset -2:-1])[0]
 		    
                     if (DEBUG == True):
                         print("Adstring =", Adstring)
