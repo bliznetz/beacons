@@ -44,6 +44,6 @@ while True:
                 #print("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
             except KafkaError:
                 logger.error("Can't send geodata %s to Kafka topic %s" % (x, topic))
-                print('Can\'t send to Kafka')
+                #print('Can\'t send to Kafka')
             x=''
             sys.stdout.flush()
