@@ -40,10 +40,10 @@ while True:
             value = socket.gethostname() + ' ' + data_time + x 
             try:
                 producer.send(topic, value)
-                logging.info("Sent data %s to topic %s (value, topic)")
-                #print("%s sent to %s" % (value, topic))
+                logging.info("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
+                #print("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
             except KafkaError:
-                logger.error("Can't send data %s to Kafka topic %s (value, topic)")
-                #print('Can\'t send to Kafka')
+                logger.error("Can't send geodata %s to Kafka topic %s" % (x, topic))
+                print('Can\'t send to Kafka')
             x=''
             sys.stdout.flush()
