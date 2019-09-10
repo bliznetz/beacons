@@ -26,7 +26,7 @@ import sys
 import struct
 import bluetooth._bluetooth as bluez
 import codecs
-import bitstring
+#import bitstring
 import binascii
 
 LE_META_EVENT = 0x3e
