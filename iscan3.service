@@ -10,6 +10,6 @@ WantedBy=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /iscan3/PyBlescan-CpToKafka/testblescan3.py
+ExecStart=/usr/bin/python3 /iscan3/testblescan3.py
 ExecStop=
 RemainAfterExit=true
