@@ -8,7 +8,8 @@ import logging
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 import time
-kafka_server = '10.66.216.17:9092'
+#kafka_server = '10.66.216.17:9092'
+kafka_server = '13.69.135.70:9092'
 dev_id = 0
 
 logging.basicConfig(filename="/var/log/testblescan3.log", level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%b-%d-%y %H:%M:%S')
@@ -51,7 +52,7 @@ while True:
 	for beacon in returnedList:
             #print(beacon)
 		
-            for t in (beacon.split(','))[2: 6]:  #Split string by comma, select 3,4,5 and 6 fields and insert in into a new string.
+            for t in (beacon.split(','))[2: 9]:  #Split string by comma, select 3,4,5 and 6 fields and insert in into a new string.
                 x = x + ' ' + t
             topic = ((re.match('^([^,]+)', beacon)).group()).replace(':', '')  # Find first element before comma
             #print(topic,socket.gethostname(),datetime.datetime.now().strftime("%s"),x, end='\n') #For Python3

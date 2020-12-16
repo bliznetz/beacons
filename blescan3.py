@@ -208,7 +208,7 @@ def parse_events(sock, loop_count):
                     Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -2: report_pkt_offset -1])[0]
                     Adstring += ","
                     Adstring += "%i" % struct.unpack("b", pkt[report_pkt_offset -1: report_pkt_offset -2:-1])[0]
-		    
+                    Adstring += ",88,366,5000" # Fake telemetry data		    
                     if (DEBUG == True):
                         print("Adstring =", Adstring)
                     myFullList.append(Adstring)
