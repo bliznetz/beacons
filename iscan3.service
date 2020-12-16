@@ -1,0 +1,15 @@
+[Unit]
+Description=Scanning ibeacons - python 3 used
+DefaultDependencies=no
+Wants=network.target
+After=local-fs.target network.target systemd-sysctl.service systemd-modules-load.service bluetooth.target hciuart.service syslog.target
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /iscan3/testblescan3.py
+ExecStop=
+RemainAfterExit=true
