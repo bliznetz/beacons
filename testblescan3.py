@@ -10,6 +10,7 @@ from kafka.errors import KafkaError
 import time
 #kafka_server = '10.66.216.17:9092'
 kafka_server = '13.69.135.70:9092'
+kafka_dev_server = '10.66.216.17:9092'
 dev_id = 0
 
 logging.basicConfig(filename="/var/log/testblescan3.log", level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%b-%d-%y %H:%M:%S')
@@ -44,6 +45,7 @@ blescan3.hci_le_set_scan_parameters(sock)
 blescan3.hci_enable_le_scan(sock)
 
 producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lambda v: v.encode('utf-8'))
+producer_dev = KafkaProducer(bootstrap_servers=[kafka_dev_server], value_serializer=lambda v: v.encode('utf-8'))
 
 x=''
 
@@ -61,7 +63,11 @@ while True:
             try:
                 producer.send(topic, value)
                 #logger.info("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
-                logging.info("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
+                logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_server))
+                #print("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
+                producer_dev.send(topic, value)
+                #logger.info("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
+                logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_dev_server))
                 #print("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
             except KafkaError:
                 #logger.exception("Can't send geodata %s to Kafka topic %s" % (x, topic))
