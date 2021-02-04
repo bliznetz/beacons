@@ -50,137 +50,146 @@ ADV_SCAN_RSP=0x04
 
 
 def returnnumberpacket(pkt):
-	myInteger = 0
-	multiple = 256
-	for c in pkt:
-		myInteger +=  c * multiple
-		multiple = 1
-	return myInteger 
+    myInteger = 0
+    multiple = 256
+    for c in pkt:
+        myInteger +=  c * multiple
+        multiple = 1
+    return myInteger 
 
 def returnstringpacket(pkt):
-	myString = "";
-	for c in pkt:
-		myString +=  "%02x" % c
-	return myString 
+    myString = "";
+    for c in pkt:
+        myString +=  "%02x " % c
+    return myString 
 
 def printpacket(pkt):
-	for c in pkt:
-		sys.stdout.write("%02x " % c)
-	sys.stdout.write("\n")
+    for c in pkt:
+        sys.stdout.write("%02x " % c)
+    sys.stdout.write("\n")
 
 def get_packed_bdaddr(bdaddr_string):
-	packable_addr = []
-	addr = bdaddr_string.split(':')
-	addr.reverse()
-	for b in addr: 
-		packable_addr.append(int(b, 16))
-	return struct.pack("<BBBBBB", *packable_addr)
+    packable_addr = []
+    addr = bdaddr_string.split(':')
+    addr.reverse()
+    for b in addr: 
+        packable_addr.append(int(b, 16))
+    return struct.pack("<BBBBBB", *packable_addr)
 
 def packed_bdaddr_to_string(bdaddr_packed):
-	return ':'.join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
+    return ':'.join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
 
 def hci_enable_le_scan(sock):
-	hci_toggle_le_scan(sock, 0x01)
+    hci_toggle_le_scan(sock, 0x01)
 
 def hci_disable_le_scan(sock):
-	hci_toggle_le_scan(sock, 0x00)
+    hci_toggle_le_scan(sock, 0x00)
 
 def hci_toggle_le_scan(sock, enable):
-	# hci_le_set_scan_enable(dd, 0x01, filter_dup, 1000);
-# memset(&scan_cp, 0, sizeof(scan_cp));
- #uint8_t         enable;
- #       uint8_t         filter_dup;
-#        scan_cp.enable = enable;
-#        scan_cp.filter_dup = filter_dup;
-#
-#        memset(&rq, 0, sizeof(rq));
-#        rq.ogf = OGF_LE_CTL;
-#        rq.ocf = OCF_LE_SET_SCAN_ENABLE;
-#        rq.cparam = &scan_cp;
-#        rq.clen = LE_SET_SCAN_ENABLE_CP_SIZE;
-#        rq.rparam = &status;
-#        rq.rlen = 1;
-
-#        if (hci_send_req(dd, &rq, to) < 0)
-#                return -1;
-	cmd_pkt = struct.pack("<BB", enable, 0x00)
-	bluez.hci_send_cmd(sock, OGF_LE_CTL, OCF_LE_SET_SCAN_ENABLE, cmd_pkt)
-
+    cmd_pkt = struct.pack("<BB", enable, 0x00)
+    bluez.hci_send_cmd(sock, OGF_LE_CTL, OCF_LE_SET_SCAN_ENABLE, cmd_pkt)
 
 def hci_le_set_scan_parameters(sock):
-	old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
+    old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
 
-	SCAN_RANDOM = 0x01
-	OWN_TYPE = SCAN_RANDOM
-	SCAN_TYPE = 0x01
+    SCAN_RANDOM = 0x01
+    OWN_TYPE = SCAN_RANDOM
+    SCAN_TYPE = 0x01
+
+def nullParser() :
+    return ""
+
+def iBeaconParser(frame) :
+    num_reports = frame[0]
+    for i in range(0, num_reports):
+        print("iBeacon")
+
+        # fake data, all of it
+        Adstring = packed_bdaddr_to_string(frame[3:9])
+        Adstring += ","
+        Adstring += returnstringpacket(frame[-22:-6])
+        Adstring += ","
+        Adstring += "%i" % returnnumberpacket(frame[-6:-4])
+        Adstring += ","
+        Adstring += "%i" % returnnumberpacket(frame[-4:-2])
+        Adstring += ","
+        Adstring += "%i" % frame[-2]
+        Adstring += ","
+        Adstring += "%i" % frame[-1]
+        Adstring += ",76,365,7987" # Fake telemetry data		    
+
+        if (DEBUG == True):
+            print("\tAdstring = ", Adstring)
+
+    return Adstring
+
+def custParser(frame) :
+    num_reports = frame[0]
+    for i in range(0, num_reports):
+        print(">> T: ", (frame[12] * 0x100 + frame[13])/100, "C")
+
+        # fake data, all of it
+        Adstring = packed_bdaddr_to_string(frame[3:9])
+        Adstring += ","
+        Adstring += "1607345375"
+        Adstring += ","
+        Adstring += "%i" % 10011
+        Adstring += ","
+        Adstring += "%i" % 10003
+        Adstring += ","
+        Adstring += "%i" % -59
+        Adstring += ","
+        Adstring += "%i" % -47
+        Adstring += ",88,366,5123"
+
+        if (DEBUG == True):
+            print("\tAdstring = ", Adstring)
+
+    return Adstring
 
 def parse_events(sock, loop_count):
-	old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
+    old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
 
-	# perform a device inquiry on bluetooth device #0
-	# The inquiry should last 8 * 1.28 = 10.24 seconds
-	# before the inquiry is performed, bluez should flush its cache of
-	# previously discovered devices
+    iBeaconIdString = (255, 76, 0, 2, 21)
+    # Type - xFF (255)
+    # MFGID - x4C x00 (76 0)
+    # Type - Proximity / iBeacon - x02 (2)
+    # Length - x15 (21)
 
-	iBeaconIdString = (255, 76, 0, 2, 21)
-	# Type - xFF (255)
-	# MFGID - x4C x00 (76 0)
-	# Type - Proximity / iBeacon - x02 (2)
-	# Length - x15 (21)
+    iBeaconType = 0x01
+    custBeaconType = 0x80
 
-	flt = bluez.hci_filter_new()
-	bluez.hci_filter_all_events(flt)
-	bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
-	sock. setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
-	done = False
-	results = []
-	myFullList = []
-	for i in range(0, loop_count):
-		pkt = sock.recv(255)
-		ptype, event, plen = struct.unpack("BBB", pkt[:3])
-		if (DEBUG == True):
-			print("------ptype, event, plen--------", ptype, event, plen)
-		if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
-			i = 0
-		elif event == bluez.EVT_NUM_COMP_PKTS:
-			i = 0 
-		elif event == bluez.EVT_DISCONN_COMPLETE:
-			i = 0 
-		elif event == LE_META_EVENT:
-			subevent = pkt[3]
-			pkt = pkt[4:]
-			isiBeacon = False
-			if (pkt[10:14]):
-				isiBeacon = (pkt[11] == 128)
-			if (DEBUG == True):
-				print("----- isIbeacon -----", isiBeacon)
-			if subevent == EVT_LE_CONN_COMPLETE:
-				le_handle_connection_complete(pkt)
-			elif ((subevent == EVT_LE_ADVERTISING_REPORT) and isiBeacon):
-				#print "advertising report"
-				#num_reports = struct.unpack("B", pkt[0])[0]
-				num_reports = pkt[0]
-				report_pkt_offset = 0
-				for i in range(0, num_reports):
-					print(">> T: ", (pkt[12] * 0x100 + pkt[13])/100, "C")
+    flt = bluez.hci_filter_new()
+    bluez.hci_filter_all_events(flt)
+    bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
+    sock. setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
+    done = False
+    results = []
+    myFullList = []
+    for i in range(0, loop_count):
+        pkt = sock.recv(255)
+        ptype, event, plen = struct.unpack("BBB", pkt[:3])
+        if (DEBUG == True):
+            print("------ptype, event, plen--------", ptype, event, plen)
+        if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
+            i = 0
+        elif event == bluez.EVT_NUM_COMP_PKTS:
+            i = 0 
+        elif event == bluez.EVT_DISCONN_COMPLETE:
+            i = 0 
+        elif event == LE_META_EVENT:
+            subevent = pkt[3]
+            pkt = pkt[4:]
 
-				# build the return string
-				Adstring = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
-				Adstring += ","
-				Adstring += returnstringpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6]) 
-				Adstring += ","
-				Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4]) 
-				Adstring += ","
-				Adstring += "%i" % returnnumberpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2]) 
-				Adstring += ","
-				Adstring += "%i" % pkt[report_pkt_offset -2]
-				Adstring += ","
-				Adstring += "%i" % pkt[report_pkt_offset -1]
+            if pkt[11] == iBeaconType :
+                if pkt[14:19]: parser = iBeaconParser if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString else nullParser
+            else :
+                parser = custParser if (pkt[11] == 128) else nullParser
 
-				if (DEBUG == True):
-					print("\tAdstring=", Adstring)
+            if subevent == EVT_LE_CONN_COMPLETE:
+                le_handle_connection_complete(pkt)
+            elif ((subevent == EVT_LE_ADVERTISING_REPORT) and parser != nullParser):
+                myFullList.append(parser(pkt))
 
-				myFullList.append(Adstring)
-				done = True
-	sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
-	return myFullList
+    sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
+    return myFullList
