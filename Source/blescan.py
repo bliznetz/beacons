@@ -126,16 +126,17 @@ def iBeaconParser(frame) :
 def custParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
+        print("custom beacon")
         print(">> T: ", (frame[12] * 0x100 + frame[13])/100, "C")
 
         # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += "1607345375"
+        Adstring += "00"
         Adstring += ","
         Adstring += "%i" % 10011
         Adstring += ","
-        Adstring += "%i" % 10003
+        Adstring += "%i" % 11000
         Adstring += ","
         Adstring += "%i" % -59
         Adstring += ","
