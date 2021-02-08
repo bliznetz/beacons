@@ -96,7 +96,12 @@ def hci_le_set_scan_parameters(sock):
     OWN_TYPE = SCAN_RANDOM
     SCAN_TYPE = 0x01
 
-def nullParser() :
+def nullParser(frame) :
+    sys.stdout.write("nullBeacon: ")
+    for i in frame :
+        sys.stdout.write("%02X " % i)
+
+    sys.stdout.write("\n");
     return ""
 
 def iBeaconParser(frame) :
@@ -123,7 +128,7 @@ def iBeaconParser(frame) :
 
     return Adstring
 
-def custParser(frame) :
+def custBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
         print("custom beacon")
@@ -157,8 +162,12 @@ def parse_events(sock, loop_count):
     # Type - Proximity / iBeacon - x02 (2)
     # Length - x15 (21)
 
-    iBeaconType = 0x01
-    custBeaconType = 0x80
+    custBeaconIdString = (255, 00, 128, 1)
+    # Type - xFF (255)
+    # MFGID - x00 x80 (0 128)
+    # Type - x01 Bio telemetry (1)
+
+    beaconType = 0x01
 
     flt = bluez.hci_filter_new()
     bluez.hci_filter_all_events(flt)
@@ -182,14 +191,16 @@ def parse_events(sock, loop_count):
             subevent = pkt[3]
             pkt = pkt[4:]
 
-            if pkt[11] == iBeaconType :
-                if pkt[14:19]: parser = iBeaconParser if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString else nullParser
-            else :
-                parser = custParser if (pkt[11] == 128) else nullParser
+            parser = nullParser
+            if pkt[11] == beaconType and pkt[14:19]:
+                if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
+                    parser = iBeaconParser
+                elif struct.unpack("BBBB", pkt[14:18]) == custBeaconIdString :
+                    parser = custBeaconParser
 
             if subevent == EVT_LE_CONN_COMPLETE:
                 le_handle_connection_complete(pkt)
-            elif ((subevent == EVT_LE_ADVERTISING_REPORT) and parser != nullParser):
+            elif ((subevent == EVT_LE_ADVERTISING_REPORT)):
                 myFullList.append(parser(pkt))
 
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
