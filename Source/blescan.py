@@ -77,7 +77,7 @@ def get_packed_bdaddr(bdaddr_string):
     return struct.pack("<BBBBBB", *packable_addr)
 
 def packed_bdaddr_to_string(bdaddr_packed):
-    return ':'.join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
+    return ":".join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
 
 def hci_enable_le_scan(sock):
     hci_toggle_le_scan(sock, 0x01)
@@ -107,7 +107,8 @@ def nullParser(frame) :
 def iBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
-        print("iBeacon")
+        if DEBUG == True :
+            print("iBeacon")
 
         # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
@@ -121,7 +122,7 @@ def iBeaconParser(frame) :
         Adstring += "%i" % frame[-2]
         Adstring += ","
         Adstring += "%i" % frame[-1]
-        Adstring += ",76,365,7987" # Fake telemetry data		    
+        Adstring += ",76,365,7987" # Fake telemetry data
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -131,22 +132,24 @@ def iBeaconParser(frame) :
 def custBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
-        print("custom beacon")
-        print(">> T: ", (frame[12] * 0x100 + frame[13])/100, "C")
+        temperature = (frame[12] * 0x100 + frame[13])/100
+        if DEBUG == True :
+            print("custom beacon")
 
-        # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += "00"
+        Adstring += returnstringpacket(frame[11:16])
         Adstring += ","
-        Adstring += "%i" % 10011
+        Adstring += "%i" % 10011 # fake major
         Adstring += ","
-        Adstring += "%i" % 11000
+        Adstring += "%i" % 11000 # fake minor
         Adstring += ","
-        Adstring += "%i" % -59
+        Adstring += "%i" % -59 # fake rssi
         Adstring += ","
-        Adstring += "%i" % -47
-        Adstring += ",88,366,5123"
+        Adstring += "%i" % -47 # fake rssi
+        Adstring += ",88,"
+        Adstring += "%i" % temperature
+        Adstring += ",5123"
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
