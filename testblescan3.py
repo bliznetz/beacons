@@ -44,22 +44,21 @@ x = ""
 while True:
     returnedList = blescan3.parse_events(sock, 5)
     for beacon in returnedList:
-	if beacon :
-	    beacon_list = beacon.split(",")
-	    topic = (beacon_list[0].group()).replace(":", "")
+        if beacon :
+            beacon_list = beacon.split(",")
+            topic = beacon_list[0].replace(":", "")
 
-	    for t in (beacon.split(","))[2: 9]:
-		x = x + " " + t
+            x = " " + " ".join(beacon_list[2:9])
 
-	    data_time = datetime.datetime.now().strftime("%s")
-	    value = socket.gethostname() + " " + data_time + x 
-	    try:
-		producer.send(topic, value)
-		logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_server))
-		producer_dev.send(topic, value)
-		logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_dev_server))
-	    except KafkaError:
-		logging.exception("Can't send geodata %s to Kafka topic %s" % (x, topic))
+            data_time = datetime.datetime.now().strftime("%s")
+            value = socket.gethostname() + " " + data_time + x 
+            try:
+                producer.send(topic, value)
+                logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_server))
+                producer_dev.send(topic, value)
+                logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_dev_server))
+            except KafkaError:
+                logging.exception("Can't send geodata %s to Kafka topic %s" % (x, topic))
 
-	    x=""
-	    sys.stdout.flush()
+            x = ""
+            sys.stdout.flush()
