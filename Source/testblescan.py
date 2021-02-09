@@ -29,23 +29,25 @@ producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lamb
 producer_dev = KafkaProducer(bootstrap_servers=[kafka_dev_server], value_serializer=lambda v: v.encode("utf-8"))
 
 x = ""
-while True:
+while True :
     returnedList = blescan.parse_events(sock, 5)
-    for beacon in returnedList:
+    for beacon in returnedList :
         if beacon :
             print(beacon)
-            for t in (beacon.split(","))[2:9]:
-                x = x + " " + t
 
-            topic = ((re.match("^([^,]+)", beacon)).group()).replace(":", "") # first element before comma is bdaddr
+            beacon_list = beacon.split(",")
+            topic = beacon_list[0].replace(":", "")
             print("sending to topic " + topic)
+
+            x = " " + " ".join(beacon_list[2:9])
+
             date_time = datetime.datetime.now().strftime("%s")
-            value = socket.gethostname() + ' ' + date_time + x
+            value = socket.gethostname() + " " + date_time + x
             try:
                 producer.send(topic, value)
                 producer_dev.send(topic, value)
-                print("sent ok")
             except KafkaError:
                 print("kafka error")
+
             x = ""
             sys.stdout.flush()

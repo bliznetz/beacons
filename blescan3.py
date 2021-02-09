@@ -1,7 +1,7 @@
 # BLE iBeaconScanner based on https://gitlab.com/bliznetz/ibeaconscantokafka.git
 #05/24/19
 
-# BLE iBeaconScanToKafke based on https://github.com/switchdoclabs/iBeacon-Scanner-.git
+# BLE iBeaconScanToKafka based on https://github.com/switchdoclabs/iBeacon-Scanner-.git
 # Mira 11/19/18
 #
 # BLE iBeaconScanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
@@ -65,12 +65,13 @@ def returnnumberpacket(pkt):
 def returnstringpacket(pkt):
     myString = "";
     for c in pkt:
-        myString +=  "%02x" %c
+        myString +=  "%02x " % c
     return myString 
 
 def printpacket(pkt):
     for c in pkt:
-        sys.stdout.write("%02x " %c)
+        sys.stdout.write("%02x " % c)
+    sys.stdout.write("\n")
 
 def get_packed_bdaddr(bdaddr_string):
     packable_addr = []
@@ -81,7 +82,7 @@ def get_packed_bdaddr(bdaddr_string):
     return struct.pack("<BBBBBB", *packable_addr)
 
 def packed_bdaddr_to_string(bdaddr_packed):
-    return ':'.join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
+    return ":".join('%02x'%i for i in struct.unpack("<BBBBBB", bdaddr_packed[::-1]))
 
 def hci_enable_le_scan(sock):
     hci_toggle_le_scan(sock, 0x01)
@@ -99,19 +100,28 @@ def hci_le_set_scan_parameters(sock):
     SCAN_RANDOM = 0x01
     OWN_TYPE = SCAN_RANDOM
     SCAN_TYPE = 0x01
-    
-def nullParser() :
+
+def nullParser(frame) :
+    if (DEBUG == True) :
+        sys.stdout.write("nullBeacon: ")
+        for i in frame :
+            sys.stdout.write("%02X " % i)
+
+        sys.stdout.write("\n");
     return ""
 
 def iBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
-        print("iBeacon")
+        heartrate = frame[19]
+        temperature = (frame[21] * 0x100 + frame[20])
+        stepcount = (frame[23]*0x100 + frame[22])
+        if DEBUG == True :
+            print("iBeacon")
 
-        # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += returnstringpacket(frame[-22:-6])
+        Adstring += returnstringpacket(frame[15:24])
         Adstring += ","
         Adstring += "%i" % returnnumberpacket(frame[-6:-4])
         Adstring += ","
@@ -120,32 +130,44 @@ def iBeaconParser(frame) :
         Adstring += "%i" % frame[-2]
         Adstring += ","
         Adstring += "%i" % frame[-1]
-        Adstring += ",76,365,7987" # TODO: get data from frame
+        Adstring += ","
+        Adstring += "%i" % heartrate
+        Adstring += ","
+        Adstring += "%i" % temperature
+        Adstring += ","
+        Adstring += "%i" % stepcount
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
 
     return Adstring
 
-def custParser(frame) :
+def custBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
-        print("custom beacon")
-        print(">> T: ", (frame[12] * 0x100 + frame[13])/100, "C")
+        heartrate = frame[18]
+        temperature = (frame[20] * 0x100 + frame[19])
+        stepcount = (frame[22]*0x100 + frame[21])
+        if DEBUG == True :
+            print("custom beacon")
 
-        # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += "00"
+        Adstring += returnstringpacket(frame[15:23])
         Adstring += ","
-        Adstring += "%i" % 10011
+        Adstring += "%i" % 10011 # fake major
         Adstring += ","
-        Adstring += "%i" % 11000
+        Adstring += "%i" % 11000 # fake minor
         Adstring += ","
-        Adstring += "%i" % -59
+        Adstring += "%i" % -59 # fake rssi
         Adstring += ","
-        Adstring += "%i" % -47
-        Adstring += ",88,366,5123" # TODO: get data from frame
+        Adstring += "%i" % -47 # fake rssi
+        Adstring += ","
+        Adstring += "%i" % heartrate
+        Adstring += ","
+        Adstring += "%i" % temperature
+        Adstring += ","
+        Adstring += "%i" % stepcount
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -165,7 +187,7 @@ def parse_events(sock, loop_count):
     # MFGID - x4C x00 (76 0)
     # Type - Proximity / iBeacon - x02 (2)
     # Length - x15 (21)
-    
+
     custBeaconIdString = (255, 00, 128, 1)
     # Type - xFF (255)
     # MFGID - x00 x80 (0 128)
@@ -183,7 +205,7 @@ def parse_events(sock, loop_count):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
         if (DEBUG == True):
-            print("------ptype, event, plen-------- \n", ptype, event, plen)
+            print("------ptype, event, plen--------", ptype, event, plen)
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
             i = 0
         elif event == bluez.EVT_NUM_COMP_PKTS:
@@ -195,10 +217,10 @@ def parse_events(sock, loop_count):
             pkt = pkt[4:]
 
             parser = nullParser
-            if pkt[11] == beaconType and pkt[14:19] :
-                if struct.unpack("BBBBB", pkt[14:19]) == iBeaconString :
+            if pkt[11] == beaconType and pkt[14:19]:
+                if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
                     parser = iBeaconParser
-                elif struct.unpack("BBBB", pkt[14:18]) == custBeaconString :
+                elif struct.unpack("BBBB", pkt[14:18]) == custBeaconIdString :
                     parser = custBeaconParser
 
             if subevent == EVT_LE_CONN_COMPLETE:

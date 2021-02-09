@@ -108,7 +108,9 @@ def nullParser(frame) :
 def iBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
+        heartrate = frame[19]
         temperature = (frame[21] * 0x100 + frame[20])
+        stepcount = (frame[23]*0x100 + frame[22])
         if DEBUG == True :
             print("iBeacon")
 
@@ -123,9 +125,12 @@ def iBeaconParser(frame) :
         Adstring += "%i" % frame[-2]
         Adstring += ","
         Adstring += "%i" % frame[-1]
-        Adstring += ",76,"
+        Adstring += ","
+        Adstring += "%i" % heartrate
+        Adstring += ","
         Adstring += "%i" % temperature
-        Adstring += ",7987"
+        Adstring += ","
+        Adstring += "%i" % stepcount
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -135,7 +140,9 @@ def iBeaconParser(frame) :
 def custBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
+        heartrate = frame[18]
         temperature = (frame[20] * 0x100 + frame[19])
+        stepcount = (frame[22]*0x100 + frame[21])
         if DEBUG == True :
             print("custom beacon")
 
@@ -150,9 +157,12 @@ def custBeaconParser(frame) :
         Adstring += "%i" % -59 # fake rssi
         Adstring += ","
         Adstring += "%i" % -47 # fake rssi
-        Adstring += ",88,"
+        Adstring += ","
+        Adstring += "%i" % heartrate
+        Adstring += ","
         Adstring += "%i" % temperature
-        Adstring += ",5123"
+        Adstring += ","
+        Adstring += "%i" % stepcount
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -178,8 +188,7 @@ def parse_events(sock, loop_count):
     flt = bluez.hci_filter_new()
     bluez.hci_filter_all_events(flt)
     bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
-    sock. setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
-    done = False
+    sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
     results = []
     myFullList = []
     for i in range(0, loop_count):
@@ -206,7 +215,7 @@ def parse_events(sock, loop_count):
 
             if subevent == EVT_LE_CONN_COMPLETE:
                 le_handle_connection_complete(pkt)
-            elif ((subevent == EVT_LE_ADVERTISING_REPORT)):
+            elif subevent == EVT_LE_ADVERTISING_REPORT :
                 myFullList.append(parser(pkt))
 
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
