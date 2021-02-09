@@ -97,23 +97,24 @@ def hci_le_set_scan_parameters(sock):
     SCAN_TYPE = 0x01
 
 def nullParser(frame) :
-    sys.stdout.write("nullBeacon: ")
-    for i in frame :
-        sys.stdout.write("%02X " % i)
+    if (DEBUG == True) :
+        sys.stdout.write("nullBeacon: ")
+        for i in frame :
+            sys.stdout.write("%02X " % i)
 
-    sys.stdout.write("\n");
+        sys.stdout.write("\n");
     return ""
 
 def iBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
+        temperature = (frame[21] * 0x100 + frame[20])
         if DEBUG == True :
             print("iBeacon")
 
-        # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += returnstringpacket(frame[-22:-6])
+        Adstring += returnstringpacket(frame[15:24])
         Adstring += ","
         Adstring += "%i" % returnnumberpacket(frame[-6:-4])
         Adstring += ","
@@ -122,7 +123,9 @@ def iBeaconParser(frame) :
         Adstring += "%i" % frame[-2]
         Adstring += ","
         Adstring += "%i" % frame[-1]
-        Adstring += ",76,365,7987" # Fake telemetry data
+        Adstring += ",76,"
+        Adstring += "%i" % temperature
+        Adstring += ",7987"
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -132,13 +135,13 @@ def iBeaconParser(frame) :
 def custBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
-        temperature = (frame[12] * 0x100 + frame[13])/100
+        temperature = (frame[20] * 0x100 + frame[19])
         if DEBUG == True :
             print("custom beacon")
 
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += returnstringpacket(frame[11:16])
+        Adstring += returnstringpacket(frame[15:23])
         Adstring += ","
         Adstring += "%i" % 10011 # fake major
         Adstring += ","
