@@ -96,19 +96,27 @@ def hci_le_set_scan_parameters(sock):
     OWN_TYPE = SCAN_RANDOM
     SCAN_TYPE = 0x01
 
-def nullParser() :
+def nullParser(frame) :
+    if (DEBUG == True) :
+        sys.stdout.write("nullBeacon: ")
+        for i in frame :
+            sys.stdout.write("%02X " % i)
+
+        sys.stdout.write("\n");
     return ""
 
 def iBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
+        heartrate = frame[19]
+        temperature = (frame[21] * 0x100 + frame[20])
+        stepcount = (frame[23]*0x100 + frame[22])
         if DEBUG == True :
             print("iBeacon")
 
-        # fake data, all of it
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += returnstringpacket(frame[-22:-6])
+        Adstring += returnstringpacket(frame[15:24])
         Adstring += ","
         Adstring += "%i" % returnnumberpacket(frame[-6:-4])
         Adstring += ","
@@ -117,23 +125,30 @@ def iBeaconParser(frame) :
         Adstring += "%i" % frame[-2]
         Adstring += ","
         Adstring += "%i" % frame[-1]
-        Adstring += ",76,365,7987" # Fake telemetry data
+        Adstring += ","
+        Adstring += "%i" % heartrate
+        Adstring += ","
+        Adstring += "%i" % temperature
+        Adstring += ","
+        Adstring += "%i" % stepcount
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
 
     return Adstring
 
-def custParser(frame) :
+def custBeaconParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
-        temperature = (frame[12] * 0x100 + frame[13])/100
+        heartrate = frame[18]
+        temperature = (frame[20] * 0x100 + frame[19])
+        stepcount = (frame[22]*0x100 + frame[21])
         if DEBUG == True :
             print("custom beacon")
 
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
-        Adstring += returnstringpacket(frame[11:16])
+        Adstring += returnstringpacket(frame[15:23])
         Adstring += ","
         Adstring += "%i" % 10011 # fake major
         Adstring += ","
@@ -142,9 +157,12 @@ def custParser(frame) :
         Adstring += "%i" % -59 # fake rssi
         Adstring += ","
         Adstring += "%i" % -47 # fake rssi
-        Adstring += ",88,"
+        Adstring += ","
+        Adstring += "%i" % heartrate
+        Adstring += ","
         Adstring += "%i" % temperature
-        Adstring += ",5123"
+        Adstring += ","
+        Adstring += "%i" % stepcount
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -160,14 +178,17 @@ def parse_events(sock, loop_count):
     # Type - Proximity / iBeacon - x02 (2)
     # Length - x15 (21)
 
-    iBeaconType = 0x01
-    custBeaconType = 0x80
+    custBeaconIdString = (255, 00, 128, 1)
+    # Type - xFF (255)
+    # MFGID - x00 x80 (0 128)
+    # Type - x01 Bio telemetry (1)
+
+    beaconType = 0x01
 
     flt = bluez.hci_filter_new()
     bluez.hci_filter_all_events(flt)
     bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
-    sock. setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
-    done = False
+    sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
     results = []
     myFullList = []
     for i in range(0, loop_count):
@@ -185,14 +206,16 @@ def parse_events(sock, loop_count):
             subevent = pkt[3]
             pkt = pkt[4:]
 
-            if pkt[11] == iBeaconType :
-                if pkt[14:19]: parser = iBeaconParser if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString else nullParser
-            else :
-                parser = custParser if (pkt[11] == 128) else nullParser
+            parser = nullParser
+            if pkt[11] == beaconType and pkt[14:19]:
+                if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
+                    parser = iBeaconParser
+                elif struct.unpack("BBBB", pkt[14:18]) == custBeaconIdString :
+                    parser = custBeaconParser
 
             if subevent == EVT_LE_CONN_COMPLETE:
                 le_handle_connection_complete(pkt)
-            elif ((subevent == EVT_LE_ADVERTISING_REPORT) and parser != nullParser):
+            elif subevent == EVT_LE_ADVERTISING_REPORT :
                 myFullList.append(parser(pkt))
 
     sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
