@@ -101,6 +101,14 @@ def hci_le_set_scan_parameters(sock):
     OWN_TYPE = SCAN_RANDOM
     SCAN_TYPE = 0x01
 
+def clipData(data, low, high) :
+    if data < low :
+        return low
+    elif data > high :
+        return high
+    else :
+        return data
+
 def nullParser(frame) :
     if (DEBUG == True) :
         sys.stdout.write("nullBeacon: ")
@@ -127,15 +135,15 @@ def iBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % returnnumberpacket(frame[-4:-2])
         Adstring += ","
-        Adstring += "%i" % frame[-2]
+        Adstring += "%i" % clipData(frame[-2], -100, -1)
         Adstring += ","
-        Adstring += "%i" % frame[-1]
+        Adstring += "%i" % clipData(frame[-1], -100, -1)
         Adstring += ","
-        Adstring += "%i" % heartrate
+        Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
-        Adstring += "%i" % temperature
+        Adstring += "%i" % clipData(temperature, 320, 420)
         Adstring += ","
-        Adstring += "%i" % stepcount
+        Adstring += "%i" % clipData(stepcount, 0, 65535)
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
@@ -163,11 +171,11 @@ def custBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % -47 # fake rssi
         Adstring += ","
-        Adstring += "%i" % heartrate
+        Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
-        Adstring += "%i" % temperature
+        Adstring += "%i" % clipData(temperature, 320, 420)
         Adstring += ","
-        Adstring += "%i" % stepcount
+        Adstring += "%i" % clipData(stepcount, 0, 65535)
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
