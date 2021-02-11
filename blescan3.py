@@ -53,6 +53,7 @@ ADV_SCAN_IND=0x02
 ADV_NONCONN_IND=0x03
 ADV_SCAN_RSP=0x04
 
+CONSTANT_RSSI = -5
 
 def returnnumberpacket(pkt):
     myInteger = 0
@@ -135,9 +136,9 @@ def iBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % returnnumberpacket(frame[-4:-2])
         Adstring += ","
-        Adstring += "%i" % clipData(frame[-2], -100, -1)
+        Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
         Adstring += ","
-        Adstring += "%i" % clipData(frame[-1], -100, -1)
+        Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
@@ -167,9 +168,9 @@ def custBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % 11000 # fake minor
         Adstring += ","
-        Adstring += "%i" % -59 # fake rssi
+        Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
         Adstring += ","
-        Adstring += "%i" % -47 # fake rssi
+        Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
