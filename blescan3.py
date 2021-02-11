@@ -225,6 +225,9 @@ def parse_events(sock, loop_count):
             subevent = pkt[3]
             pkt = pkt[4:]
 
+            if len(pkt) < 20 :
+                continue
+
             parser = nullParser
             if pkt[11] == beaconType and pkt[14:19]:
                 if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
