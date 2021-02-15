@@ -8,7 +8,7 @@ import bluetooth._bluetooth as bluez
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-kafka_server = '13.69.135.70:9092'
+#kafka_server = '13.69.135.70:9092'
 kafka_dev_server = '10.66.216.17:9092'
 dev_id = 0
 
@@ -37,7 +37,7 @@ except:
 blescan3.hci_le_set_scan_parameters(sock)
 blescan3.hci_enable_le_scan(sock)
 
-producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lambda v: v.encode('utf-8'))
+#producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lambda v: v.encode('utf-8'))
 producer_dev = KafkaProducer(bootstrap_servers=[kafka_dev_server], value_serializer=lambda v: v.encode('utf-8'))
 
 x = ""
@@ -53,8 +53,8 @@ while True:
             data_time = datetime.datetime.now().strftime("%s")
             value = socket.gethostname() + " " + data_time + x 
             try:
-                producer.send(topic, value)
-                logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_server))
+#                producer.send(topic, value)
+#                logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_server))
                 producer_dev.send(topic, value)
                 logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_dev_server))
             except KafkaError:
