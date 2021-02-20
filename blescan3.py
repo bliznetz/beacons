@@ -7,7 +7,7 @@
 # BLE iBeaconScanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # JCS 06/07/14
 
-DEBUG = False
+DEBUG = True
 # BLE scanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # BLE scanner, based on https://code.google.com/p/pybluez/source/browse/trunk/examples/advanced/inquiry-with-rssi.py
 
@@ -127,6 +127,45 @@ def iBeaconParser(frame) :
         stepcount = (frame[23]*0x100 + frame[22])
         if DEBUG == True :
             print("iBeacon")
+            for i in frame :
+              sys.stdout.write("%02X " % i)
+            sys.stdout.write("\n");
+
+        Adstring = packed_bdaddr_to_string(frame[3:9])
+        Adstring += ","
+        Adstring += returnstringpacket(frame[15:24])
+        Adstring += ","
+        Adstring += "%i" % returnnumberpacket(frame[-6:-4])
+        Adstring += ","
+        Adstring += "%i" % returnnumberpacket(frame[-4:-2])
+        Adstring += ","
+        Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+        Adstring += ","
+        Adstring += "%i" % CONSTANT_RSSI
+        Adstring += ","
+        Adstring += "%i" % clipData(heartrate, 0, 255)
+        Adstring += ","
+        Adstring += "%i" % clipData(temperature, 320, 420)
+        Adstring += ","
+        Adstring += "%i" % clipData(stepcount, 0, 65535)
+
+        if (DEBUG == True):
+            print("\tAdstring = ", Adstring)
+
+    return Adstring
+
+def TempTrackParser(frame) :
+    printpacket(frame)
+    num_reports = frame[0]
+    for i in range(0, num_reports):
+        heartrate = frame[19]
+        temperature = (frame[21] * 0x100 + frame[20])
+        stepcount = (frame[23]*0x100 + frame[22])
+        if DEBUG == True :
+            print("TempTracker")
+            for i in frame :
+              sys.stdout.write("%02X " % i)
+            sys.stdout.write("\n");
 
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
@@ -197,6 +236,11 @@ def parse_events(sock, loop_count):
     # Type - Proximity / iBeacon - x02 (2)
     # Length - x15 (21)
 
+    TempTrackIdString = (109, 112, 116, 114)
+    # Type - x6D (109)
+    # MFGID - x7A x74 (112 116)
+    # Type  - x72 (114)
+
     custBeaconIdString = (255, 00, 128, 1)
     # Type - xFF (255)
     # MFGID - x00 x80 (0 128)
@@ -213,8 +257,15 @@ def parse_events(sock, loop_count):
     for i in range(0, loop_count):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
+        
+        sidb = "short"
+        if plen > 19:
+            sidb = struct.unpack("BBBBB", pkt[18:23])
         if (DEBUG == True):
-            print("------ptype, event, plen--------", ptype, event, plen)
+            sidb = "short"
+            if plen > 19:
+                sidb = struct.unpack("BBBBB", pkt[18:23])
+            print("------idb, ptype, event, plen--------", sidb, ptype, event, plen)
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
             i = 0
         elif event == bluez.EVT_NUM_COMP_PKTS:
@@ -225,15 +276,20 @@ def parse_events(sock, loop_count):
             subevent = pkt[3]
             pkt = pkt[4:]
 
-            if len(pkt) < 20 :
-                continue
+#            if len(pkt) < 20 :
+#                continue
 
             parser = nullParser
-            if pkt[11] == beaconType and pkt[14:19]:
+#            if pkt[11] == beaconType and pkt[14:19]:
+            if len(pkt) > 21 :
+                if (DEBUG == True):
+                    print("-----",struct.unpack("BBBB", pkt[14:18]),"-----")
                 if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
                     parser = iBeaconParser
                 elif struct.unpack("BBBB", pkt[14:18]) == custBeaconIdString :
                     parser = custBeaconParser
+                elif struct.unpack("BBBB", pkt[14:18]) == TempTrackIdString :
+                    parser = TempTrackParser
 
             if subevent == EVT_LE_CONN_COMPLETE:
                 le_handle_connection_complete(pkt)
