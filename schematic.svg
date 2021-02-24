@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Creator: Kirill Kupriyanov <Kirill_Kupriianov@epam.com> -->
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    version="1.2"
+    baseProfile="tiny"
+    width="1000"
+    height="700"
+    viewBox="0 0 1000 700">
+
+    <defs>
+        <path id="arrowhead"
+        d="M0,0 10,-4 c -1.8,2.4 -1.8,5.6 0,8 z"
+        style="stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+        />
+
+        <g id="arrowUp">
+        <use xlink:href="#arrowhead" x="0" y="0" transform="rotate(90) scale(1.5)"/>
+        </g>
+
+        <g id="arrowLeft">
+        <use xlink:href="#arrowhead" x="0" y="0" transform="scale(1.5)"/>
+        </g>
+
+        <g id="arrowDown">
+        <use xlink:href="#arrowhead" x="0" y="0" transform="rotate(270) scale(1.5)"/>
+        </g>
+
+        <g id="arrowRight">
+        <use xlink:href="#arrowhead" x="0" y="0" transform="rotate(180) scale(1.5)"/>
+        </g>
+    </defs>
+
+	<rect x="20" y="20" width="300" height="200" fill="#6DD35A" stroke="black" stroke-with="1"/>
+	<text
+	    x="170"
+	    y="135"
+	    style="text-anchor:middle;font-weight:normal;font-size:40;font-family:Arial;fill:#000000">
+	    ESP32</text>
+
+	<rect x="680" y="20" width="300" height="200" fill="#42A4FF" stroke="black" stroke-with="1"/>
+	<text
+	    x="830"
+	    y="135"
+	    style="text-anchor:middle;font-weight:normal;font-size:40;font-family:Arial;fill:#000000">
+	    BME280</text>
+
+	<rect x="20" y="480" width="300" height="200" fill="#42A4FF" stroke="black" stroke-with="1"/>
+	<text
+	    x="170"
+	    y="595"
+	    style="text-anchor:middle;font-weight:normal;font-size:40;font-family:Arial;fill:#000000">
+	    MAX30100</text>
+
+	<rect x="680" y="480" width="300" height="200" fill="#42A4FF" stroke="black" stroke-with="1"/>
+	<text
+	    x="830"
+	    y="595"
+	    style="text-anchor:middle;font-weight:normal;font-size:40;font-family:Arial;fill:#000000">
+	    MPU9250</text>
+
+
+	<text
+	    x="500"
+	    y="335"
+	    style="text-anchor:middle;font-weight:normal;font-size:40;font-family:Arial;fill:#000000">
+	    I²C</text>
+
+	<g stroke="black" stroke-width="2">
+	    <line x1="20" y1="350" x2="980" y2="350"/>
+
+	    <line x1="170" y1="220" x2="170" y2="480"/>
+	    <line x1="830"  y1="220" x2="830" y2="480"/>
+	</g>
+
+    <use xlink:href="#arrowLeft" x="20" y="350"/>
+    <use xlink:href="#arrowRight" x="980" y="350"/>
+
+    <use xlink:href="#arrowUp" x="170" y="220"/>
+    <use xlink:href="#arrowDown" x="170" y="350"/>
+    <use xlink:href="#arrowUp" x="170" y="350"/>
+    <use xlink:href="#arrowDown" x="170" y="480"/>
+
+    <use xlink:href="#arrowUp" x="830" y="220"/>
+
+    <use xlink:href="#arrowUp" x="830" y="220"/>
+    <use xlink:href="#arrowDown" x="830" y="350"/>
+    <use xlink:href="#arrowUp" x="830" y="350"/>
+    <use xlink:href="#arrowDown" x="830" y="480"/>
+</svg>
