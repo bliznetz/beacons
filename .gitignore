@@ -122,5 +122,5 @@ venv.bak/
 # editors/IDE
 .idea/
 DEADJOE
-*.swp
-*.swo
+.*.swp
+.*.swo
