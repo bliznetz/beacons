@@ -120,6 +120,8 @@ def nullParser(frame) :
     return ""
 
 def iBeaconParser(frame) :
+    if True : #DEBUG == 
+        printpacket(frame)
     num_reports = frame[0]
     for i in range(0, num_reports):
         heartrate = frame[19]
@@ -136,9 +138,9 @@ def iBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % returnnumberpacket(frame[-4:-2])
         Adstring += ","
-        Adstring += "%i" % CONSTANT_RSSI
-        Adstring += ","
         Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+        Adstring += ","
+        Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
@@ -168,9 +170,9 @@ def custBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % 11000 # fake minor
         Adstring += ","
-        Adstring += "%i" % CONSTANT_RSSI
-        Adstring += ","
         Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+        Adstring += ","
+        Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
@@ -179,6 +181,44 @@ def custBeaconParser(frame) :
         Adstring += "%i" % clipData(stepcount, 0, 65535)
 
         if (DEBUG == True):
+            print("\tAdstring = ", Adstring)
+
+    return Adstring
+
+def TempTrackParser(frame) :
+    if True : #DEBUG == 
+        printpacket(frame)
+    num_reports = frame[0]
+    for i in range(0, num_reports):
+        heartrate = 10 # Fake
+        temperature = frame[25]*10 + (int)(frame[26]/10)
+        stepcount = 10 # Fake
+        if DEBUG == True :
+            #
+            print("TempTracker")
+            for i in frame :
+                sys.stdout.write("%02X " % i)
+            sys.stdout.write("\n");
+    
+        Adstring = packed_bdaddr_to_string(frame[3:9])
+        Adstring += ","
+        Adstring += returnstringpacket(frame[15:24])
+        Adstring += ","
+        Adstring += "%i" % returnnumberpacket(frame[28:30])
+        Adstring += ","
+        Adstring += "%i" % returnnumberpacket(frame[30:32])
+        Adstring += ","
+        Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+        Adstring += ","
+        Adstring += "%i" % CONSTANT_RSSI
+        Adstring += ","
+        Adstring += "%i" % clipData(heartrate, 0, 255)
+        Adstring += ","
+        Adstring += "%i" % clipData(temperature, 320, 420)
+        Adstring += ","
+        Adstring += "%i" % clipData(stepcount, 0, 65535)
+
+        if (DEBUG == True): 
             print("\tAdstring = ", Adstring)
 
     return Adstring
@@ -202,6 +242,11 @@ def parse_events(sock, loop_count):
     # MFGID - x00 x80 (0 128)
     # Type - x01 Bio telemetry (1)
 
+    TempTrackIdString = (109, 112, 116, 114)
+    # Type - x6D (109)
+    # MFGID - x7A x74 (112 116)
+    # Type  - x72 (114)
+
     beaconType = 0x01
 
     flt = bluez.hci_filter_new()
@@ -220,7 +265,7 @@ def parse_events(sock, loop_count):
         elif event == bluez.EVT_NUM_COMP_PKTS:
             i = 0 
         elif event == bluez.EVT_DISCONN_COMPLETE:
-            i = 0 
+            i = 0
         elif event == LE_META_EVENT:
             subevent = pkt[3]
             pkt = pkt[4:]
@@ -229,11 +274,13 @@ def parse_events(sock, loop_count):
                 continue
 
             parser = nullParser
-            if pkt[11] == beaconType and pkt[14:19]:
-                if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
-                    parser = iBeaconParser
-                elif struct.unpack("BBBB", pkt[14:18]) == custBeaconIdString :
-                    parser = custBeaconParser
+            
+            if struct.unpack("BBBBB", pkt[14:19]) == iBeaconIdString :
+                parser = iBeaconParser
+            elif struct.unpack("BBBB", pkt[14:18]) == custBeaconIdString :
+                parser = custBeaconParser
+            elif struct.unpack("BBBB", pkt[14:18]) == TempTrackIdString :
+                parser = TempTrackParser
 
             if subevent == EVT_LE_CONN_COMPLETE:
                 le_handle_connection_complete(pkt)
