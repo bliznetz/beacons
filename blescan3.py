@@ -7,7 +7,7 @@
 # BLE iBeaconScanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # JCS 06/07/14
 
-DEBUG = True
+DEBUG = False
 # BLE scanner based on https://github.com/adamf/BLE/blob/master/ble-scanner.py
 # BLE scanner, based on https://code.google.com/p/pybluez/source/browse/trunk/examples/advanced/inquiry-with-rssi.py
 
@@ -159,21 +159,25 @@ def TempTrackParser(frame) :
     num_reports = frame[0]
     for i in range(0, num_reports):
         heartrate = frame[19]
-        temperature = (frame[21] * 0x100 + frame[20])
+        temperature = frame[25]*10 + (int)(frame[26]/10)
+        #int(value[4:6],16),",",int(value[6:8],16)
+        print("frames",frame[25],frame[26],"\n")
+        print("temp",temperature,"\n")
         stepcount = (frame[23]*0x100 + frame[22])
         if DEBUG == True :
+            #
             print("TempTracker")
             for i in frame :
-              sys.stdout.write("%02X " % i)
+                sys.stdout.write("%02X " % i)
             sys.stdout.write("\n");
-
+    
         Adstring = packed_bdaddr_to_string(frame[3:9])
         Adstring += ","
         Adstring += returnstringpacket(frame[15:24])
         Adstring += ","
-        Adstring += "%i" % returnnumberpacket(frame[-6:-4])
+        Adstring += "%i" % returnnumberpacket(frame[28:30])
         Adstring += ","
-        Adstring += "%i" % returnnumberpacket(frame[-4:-2])
+        Adstring += "%i" % returnnumberpacket(frame[30:32])
         Adstring += ","
         Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
         Adstring += ","
@@ -185,7 +189,7 @@ def TempTrackParser(frame) :
         Adstring += ","
         Adstring += "%i" % clipData(stepcount, 0, 65535)
 
-        if (DEBUG == True):
+        if (True): #DEBUG == 
             print("\tAdstring = ", Adstring)
 
     return Adstring

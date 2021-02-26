@@ -57,6 +57,8 @@ while True:
                 logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_server))
                 producer_dev.send(topic, value)
                 logging.info("Location and data %s from host %s was sent to topic %s server %s" % (x, socket.gethostname(), topic, kafka_dev_server))
+              #  print("Location and data %s from host %s was sent to topic %s server %s" ,x, socket.gethostname(), topic, kafka_dev_server)
+          
             except KafkaError:
                 logging.exception("Can't send geodata %s to Kafka topic %s" % (x, topic))
 
