@@ -10,12 +10,11 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
 PROD_ENV = False
+EXTERN_ENV = False
 
-# kafka_server_new = '10.66.220.252:9092'
-kafka_server_new = '10.66.216.17:9092'
-
-if PROD_ENV:
-    kafka_server = '13.69.135.70:9092'
+kafka_dev = '10.66.216.17'
+kafka_lab = '10.66.220.252'
+kafka_ext = '13.69.135.70'
 
 dev_id = 0
 
@@ -44,9 +43,13 @@ except:
 blescan3.hci_le_set_scan_parameters(sock)
 blescan3.hci_enable_le_scan(sock)
 
+kafkas = [KafkaProducer(bootstrap_servers=[kafka_dev], value_serializer=lambda v: v.encode('utf-8'))]
+
 if PROD_ENV:
-    producer = KafkaProducer(bootstrap_servers=[kafka_server], value_serializer=lambda v: v.encode('utf-8'))
-producer_new = KafkaProducer(bootstrap_servers=[kafka_server_new], value_serializer=lambda v: v.encode('utf-8'))
+    kafkas.append(KafkaProducer(bootstrap_servers=[kafka_lab], value_serializer=lambda v: v.encode('utf-8')))
+
+if EXTERN_ENV:
+    kafkas.append(KafkaProducer(bootstrap_servers=[kafka_ext], value_serializer=lambda v: v.encode('utf-8')))
 
 x=''
 while True:
@@ -61,9 +64,9 @@ while True:
             data_time = datetime.datetime.now().strftime("%s")
             value = socket.gethostname() + " " + data_time + x 
             try:
-                if PROD_ENV:
+                for producer in kafkas :
                     producer.send(topic, value)
-                producer_new.send(topic, value)
+
                 logging.info("Location and data %s from host %s was sent to topic %s" % (x, socket.gethostname(), topic))
             except KafkaError:
                 logging.exception("Can't send geodata %s to Kafka topic %s" % (x, topic))
