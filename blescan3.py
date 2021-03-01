@@ -53,7 +53,7 @@ ADV_SCAN_IND=0x02
 ADV_NONCONN_IND=0x03
 ADV_SCAN_RSP=0x04
 
-CONSTANT_RSSI = -5
+CONSTANT_RSSI = -50
 
 def returnnumberpacket(pkt):
     myInteger = 0
