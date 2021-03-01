@@ -9,7 +9,8 @@ import bluetooth._bluetooth as bluez
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-PROD_ENV = False
+DEV_ENV = False
+PROD_ENV = True
 EXTERN_ENV = False
 
 kafka_dev = '10.66.216.17'
@@ -43,7 +44,9 @@ except:
 blescan3.hci_le_set_scan_parameters(sock)
 blescan3.hci_enable_le_scan(sock)
 
-kafkas = [KafkaProducer(bootstrap_servers=[kafka_dev], value_serializer=lambda v: v.encode('utf-8'))]
+kafkas = []
+if DEV_ENV:
+    kafkas.append(KafkaProducer(bootstrap_servers=[kafka_dev], value_serializer=lambda v: v.encode('utf-8')))
 
 if PROD_ENV:
     kafkas.append(KafkaProducer(bootstrap_servers=[kafka_lab], value_serializer=lambda v: v.encode('utf-8')))
