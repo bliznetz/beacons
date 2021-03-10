@@ -9,7 +9,7 @@ import bluetooth._bluetooth as bluez
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-DEV_ENV = True
+DEV_ENV = False
 PROD_ENV = True
 EXTERN_ENV = False
 
