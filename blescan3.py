@@ -55,6 +55,8 @@ ADV_SCAN_RSP=0x04
 
 CONSTANT_RSSI = -50
 
+bdaddr_blacklist = [[0x15, 0xA2, 0x8A, 0x37, 0x33, 0xD4], [0xBD, 0xF2, 0xCC, 0x2E, 0xB3, 0xFD]]
+
 def returnnumberpacket(pkt):
     myInteger = 0
     multiple = 256
@@ -102,6 +104,19 @@ def hci_le_set_scan_parameters(sock):
     OWN_TYPE = SCAN_RANDOM
     SCAN_TYPE = 0x01
 
+def bdaddr_allowed(addr) :
+    for blackaddr in bdaddr_blacklist:
+        match = True
+        for i in range(0,6) :
+            if blackaddr[i] != addr[i] :
+                match = False
+                break
+
+        if match :
+            return False
+
+    return True
+
 def clipData(data, low, high) :
     if data < low :
         return low
@@ -130,23 +145,28 @@ def iBeaconParser(frame) :
         if DEBUG == True :
             print("iBeacon")
 
-        Adstring = packed_bdaddr_to_string(frame[3:9])
-        Adstring += ","
-        Adstring += returnstringpacket(frame[15:24])
-        Adstring += ","
-        Adstring += "%i" % returnnumberpacket(frame[-6:-4])
-        Adstring += ","
-        Adstring += "%i" % returnnumberpacket(frame[-4:-2])
-        Adstring += ","
-        Adstring += "%i" % CONSTANT_RSSI
-        Adstring += ","
-        Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
-        Adstring += ","
-        Adstring += "%i" % clipData(heartrate, 0, 255)
-        Adstring += ","
-        Adstring += "%i" % clipData(temperature, 320, 420)
-        Adstring += ","
-        Adstring += "%i" % clipData(stepcount, 0, 65535)
+        if bdaddr_allowed(frame[3:9]) :
+            Adstring = packed_bdaddr_to_string(frame[3:9])
+            Adstring += ","
+            Adstring += returnstringpacket(frame[15:24])
+            Adstring += ","
+            Adstring += "%i" % returnnumberpacket(frame[-6:-4])
+            Adstring += ","
+            Adstring += "%i" % returnnumberpacket(frame[-4:-2])
+            Adstring += ","
+            Adstring += "%i" % CONSTANT_RSSI
+            Adstring += ","
+            Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+            Adstring += ","
+            Adstring += "%i" % clipData(heartrate, 0, 255)
+            Adstring += ","
+            Adstring += "%i" % clipData(temperature, 320, 420)
+            Adstring += ","
+            Adstring += "%i" % clipData(stepcount, 0, 65535)
+        else :
+            if (DEBUG == True):
+                print("Blacklisted bdaddr " + packed_bdaddr_to_string(frame[3:9]))
+            Adstring = ""
 
         if (DEBUG == True):
             print("\tAdstring = ", Adstring)
