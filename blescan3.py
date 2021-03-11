@@ -154,9 +154,9 @@ def iBeaconParser(frame) :
             Adstring += ","
             Adstring += "%i" % returnnumberpacket(frame[-4:-2])
             Adstring += ","
-            Adstring += "%i" % CONSTANT_RSSI
-            Adstring += ","
             Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+            Adstring += ","
+            Adstring += "%i" % CONSTANT_RSSI
             Adstring += ","
             Adstring += "%i" % clipData(heartrate, 0, 255)
             Adstring += ","
@@ -190,9 +190,9 @@ def custBeaconParser(frame) :
         Adstring += ","
         Adstring += "%i" % 11000 # fake minor
         Adstring += ","
-        Adstring += "%i" % CONSTANT_RSSI
-        Adstring += ","
         Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+        Adstring += ","
+        Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
@@ -231,6 +231,8 @@ def TempTrackParser(frame) :
         Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(frame[-1] - 256, -100, -1)
+        Adstring += ","
+        Adstring += "%i" % CONSTANT_RSSI
         Adstring += ","
         Adstring += "%i" % clipData(heartrate, 0, 255)
         Adstring += ","
